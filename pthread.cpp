@@ -22,7 +22,6 @@ typedef struct
 } thread_params;
 pthread_mutex_t nextColumnMutex;
 int nextColumn;
-//int thread_count =0;
 int** readMatrix(int *size, string filename)
 {
 
@@ -59,18 +58,13 @@ void printMatrix(int **matr, int size)
 void getCofactor(int **matr, int **temp, int p, int q, int n)
 {
     int i = 0, j = 0;
-    // Looping for each element of the matrix
     for (int row = 0; row < n; row++)
     {
         for (int col = 0; col < n; col++)
         {
-            //  Copying into temporary matrix only those element
-            //  which are not in given row and column
             if (row != p && col != q)
             {
                 temp[i][j++] = matr[row][col];
-                // Row is filled, so increase row index and
-                // reset col index
                 if (j == n - 1)
                 {
                     j = 0;
@@ -111,24 +105,17 @@ int determinant (int **matr, int size)
 
 void* func1(void *arg)
 {
-    int det =0;
-
+    int det = 0;
     thread_params *param = (thread_params*) arg;
     int col;
     while (1)
     {
         pthread_mutex_lock(&nextColumnMutex);
-
-        // получение номера след. столбца и инкрементация
         col = nextColumn;
         nextColumn++;
-
-        // выход из мьютекса
         pthread_mutex_unlock(&nextColumnMutex);
-        // завершение когда больше нет столбцов для обработки
         if (col >= param->matrSize)
             break;
-        // получение минора
         int **temp;
          temp= new int*[param->matrSize-1];
         for (int i = 0; i <param->matrSize-1; i++) 
@@ -139,9 +126,7 @@ void* func1(void *arg)
             for (int j = 0; j <param->matrSize-1; j++) 
                 temp[i][j]=0;
         getCofactor(param->matr, temp, 0, col, param->matrSize);
-        // обработка начиная с него и до конца
         det += pow(-1.0, col) * param->matr[0][col] *determinant(temp, param->matrSize-1);
-        // освобождение памяти минора
         for (int i = 0; i < param->matrSize-1; i++) 
         {
         delete[] temp[i];
